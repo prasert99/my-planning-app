@@ -19,6 +19,8 @@ const clearSearchBtn = document.getElementById('clear-search-btn');
 
 const sidebar = document.getElementById('sidebar');
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const categoryContent = document.getElementById('category-content');
+const toggleCategoryBtn = document.getElementById('toggle-category-btn');
 const categoryListEl = document.getElementById('category-list');
 const addCategoryForm = document.getElementById('add-category-form');
 const newCategoryNameInput = document.getElementById('new-category-name');
@@ -249,6 +251,13 @@ darkModeToggle.addEventListener('click', () => {
 
 mobileMenuBtn.addEventListener('click', () => {
   sidebar.classList.toggle('hidden');
+});
+
+toggleCategoryBtn.addEventListener('click', () => {
+  const isExpanded = toggleCategoryBtn.getAttribute('aria-expanded') === 'true';
+  categoryContent.classList.toggle('hidden', isExpanded);
+  toggleCategoryBtn.setAttribute('aria-expanded', String(!isExpanded));
+  toggleCategoryBtn.textContent = isExpanded ? '▼' : '▲';
 });
 
 let isComposerOpen = true;
