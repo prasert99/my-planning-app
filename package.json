@@ -1,7 +1,7 @@
 {
   "name": "my-planning-app",
   "version": "1.0.0",
-  "description": "Planning Feed App with Express and PostgreSQL",
+  "description": "Planning Feed App with Express and SQLite",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -11,6 +11,6 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "pg": "^8.11.5"
+    "better-sqlite3": "^11.7.0"
   }
 }

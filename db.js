@@ -1,14 +1,31 @@
-const { Pool } = require('pg');
+const Database = require('better-sqlite3');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
-const isProduction = process.env.NODE_ENV === 'production' || !!process.env.RAILWAY_ENVIRONMENT;
+const databasePath = process.env.DB_PATH || path.join(__dirname, 'data', 'planning.sqlite');
+fs.mkdirSync(path.dirname(path.resolve(databasePath)), { recursive: true });
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: isProduction ? { rejectUnauthorized: false } : false
-});
+const database = new Database(databasePath);
+database.pragma('foreign_keys = ON');
+
+async function query(text, params = []) {
+  if (text.includes(';')) {
+    database.exec(text);
+    return { rows: [], rowCount: 0 };
+  }
+
+  const statement = database.prepare(text.replace(/\$\d+/g, '?'));
+  if (statement.reader) {
+    const rows = statement.all(...params);
+    return { rows, rowCount: rows.length };
+  }
+
+  const result = statement.run(...params);
+  return { rows: [], rowCount: result.changes };
+}
 
 module.exports = {
-  query: (text, params) => pool.query(text, params),
-  pool
+  query,
+  database
 };

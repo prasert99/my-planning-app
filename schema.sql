@@ -6,18 +6,18 @@ CREATE TABLE IF NOT EXISTS app_settings (
 
 -- 2. ตารางหมวดหมู่กิจกรรม
 CREATE TABLE IF NOT EXISTS categories (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(100) NOT NULL,
     emoji VARCHAR(20) DEFAULT '📁'
 );
 
 -- 3. ตารางโพสต์แผนงานกิจกรรม
 CREATE TABLE IF NOT EXISTS posts (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     title VARCHAR(255) NOT NULL,
     event_date DATE NOT NULL,
     content TEXT,
-    category_id INT REFERENCES categories(id) ON DELETE SET NULL,
+    category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
     sort_order INT DEFAULT 0,
     is_completed BOOLEAN DEFAULT FALSE,
     is_collapsed BOOLEAN DEFAULT FALSE,
