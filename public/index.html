@@ -48,6 +48,19 @@
     .drag-handle:active { cursor: grabbing; }
     .post-completed { opacity: 0.65; background-color: #f8fafc !important; }
     .post-completed .post-title-text { text-decoration: line-through; color: #94a3b8; }
+    @media (min-width: 768px) {
+      #app-layout.category-collapsed #sidebar { grid-column: span 1 / span 1; }
+      #app-layout.category-collapsed #posts-main { grid-column: span 11 / span 11; }
+      #sidebar .category-panel.category-panel-collapsed { padding: 0.75rem 0.4rem; }
+      #sidebar .category-panel-collapsed #category-header {
+        flex-direction: column;
+        margin-bottom: 0;
+      }
+      #sidebar .category-panel-collapsed #category-heading {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+      }
+    }
   </style>
 </head>
 <body class="bg-[#f0f2f5] text-gray-800 min-h-screen">
@@ -112,14 +125,14 @@
   </header>
 
   <!-- 3. โครงสร้างหลัก (Sidebar + Feed) -->
-  <div class="max-w-6xl mx-auto px-4 py-5 grid grid-cols-1 md:grid-cols-12 gap-6">
+  <div id="app-layout" class="max-w-6xl mx-auto px-4 py-5 grid grid-cols-1 md:grid-cols-12 gap-6">
     <!-- แถบด้านข้าง: หมวดหมู่ (Sidebar) -->
     <aside id="sidebar" class="md:col-span-4 lg:col-span-3 hidden md:block">
-      <div class="bg-white rounded-xl shadow-sm p-4 sticky top-20">
-        <div class="flex items-center justify-between gap-2 mb-3">
-          <h2 class="font-bold text-gray-700 text-base">หมวดหมู่กิจกรรม</h2>
-          <button id="toggle-category-btn" type="button" aria-expanded="true" aria-controls="category-content"
-            class="text-gray-400 hover:text-gray-600 text-sm font-bold" title="ย่อ/ขยายหมวดหมู่กิจกรรม">▲</button>
+      <div id="category-panel" class="category-panel bg-white rounded-xl shadow-sm p-4 sticky top-20">
+        <div id="category-header" class="flex items-center justify-between gap-2 mb-3">
+          <h2 id="category-heading" class="font-bold text-gray-700 text-base">หมวดหมู่กิจกรรม</h2>
+          <button id="toggle-category-btn" type="button" aria-expanded="true" aria-label="ย่อหมวดหมู่กิจกรรม" aria-controls="category-content"
+            class="text-gray-400 hover:text-gray-600 text-sm font-bold" title="ย่อหมวดหมู่กิจกรรม">‹</button>
         </div>
         <div id="category-content">
           <ul id="category-list" class="space-y-1 mb-4"></ul>
@@ -149,7 +162,7 @@
     </aside>
 
     <!-- พื้นที่แสดง Feed กิจกรรม -->
-    <main class="md:col-span-8 lg:col-span-9 space-y-5">
+    <main id="posts-main" class="md:col-span-8 lg:col-span-9 space-y-5">
       <!-- กล่องสร้างโพสต์ (ย่อ/ขยายได้) -->
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div id="composer-header" class="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition border-b border-gray-100">

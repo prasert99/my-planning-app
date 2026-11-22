@@ -19,6 +19,8 @@ const clearSearchBtn = document.getElementById('clear-search-btn');
 
 const sidebar = document.getElementById('sidebar');
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const appLayout = document.getElementById('app-layout');
+const categoryPanel = document.getElementById('category-panel');
 const categoryContent = document.getElementById('category-content');
 const toggleCategoryBtn = document.getElementById('toggle-category-btn');
 const categoryListEl = document.getElementById('category-list');
@@ -255,9 +257,14 @@ mobileMenuBtn.addEventListener('click', () => {
 
 toggleCategoryBtn.addEventListener('click', () => {
   const isExpanded = toggleCategoryBtn.getAttribute('aria-expanded') === 'true';
+  appLayout.classList.toggle('category-collapsed', isExpanded);
+  categoryPanel.classList.toggle('category-panel-collapsed', isExpanded);
   categoryContent.classList.toggle('hidden', isExpanded);
   toggleCategoryBtn.setAttribute('aria-expanded', String(!isExpanded));
-  toggleCategoryBtn.textContent = isExpanded ? '▼' : '▲';
+  toggleCategoryBtn.textContent = isExpanded ? '›' : '‹';
+  const actionLabel = isExpanded ? 'ขยายหมวดหมู่กิจกรรม' : 'ย่อหมวดหมู่กิจกรรม';
+  toggleCategoryBtn.title = actionLabel;
+  toggleCategoryBtn.setAttribute('aria-label', actionLabel);
 });
 
 let isComposerOpen = true;
