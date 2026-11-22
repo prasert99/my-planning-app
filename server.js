@@ -15,46 +15,85 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ฟังก์ชันเตรียมข้อมูลเริ่มต้น
 async function initDatabase() {
-  try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS app_settings (
-        key VARCHAR(50) PRIMARY KEY,
-        value TEXT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS categories (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        emoji VARCHAR(20) DEFAULT '📁'
-      );
-      CREATE TABLE IF NOT EXISTS posts (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        event_date DATE NOT NULL,
-        content TEXT,
-        category_id INT REFERENCES categories(id) ON DELETE SET NULL,
-        sort_order INT DEFAULT 0,
-        is_completed BOOLEAN DEFAULT FALSE,
-        is_collapsed BOOLEAN DEFAULT FALSE,
-        image_data TEXT,
-        doc_data TEXT,
-        doc_name VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key VARCHAR(50) PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS categories (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      emoji VARCHAR(20) DEFAULT '📁'
+    );
+    CREATE TABLE IF NOT EXISTS posts (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      event_date DATE NOT NULL,
+      content TEXT,
+      category_id INT REFERENCES categories(id) ON DELETE SET NULL,
+      sort_order INT DEFAULT 0,
+      is_completed BOOLEAN DEFAULT FALSE,
+      is_collapsed BOOLEAN DEFAULT FALSE,
+      image_data TEXT,
+      doc_data TEXT,
+      doc_name VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
 
-    const passRes = await db.query("SELECT value FROM app_settings WHERE key = 'app_password'");
-    if (passRes.rows.length === 0) {
-      const defaultPass = process.env.APP_PASSWORD || '1234';
-      const hash = await bcrypt.hash(defaultPass, 10);
-      await db.query("INSERT INTO app_settings (key, value) VALUES ('app_password', $1)", [hash]);
+  const passRes = await db.query("SELECT value FROM app_settings WHERE key = 'app_password'");
+  if (passRes.rows.length > 0 && await bcrypt.compare('1234', passRes.rows[0].value)) {
+    await db.query("DELETE FROM app_settings WHERE key = 'app_password' AND value = $1", [passRes.rows[0].value]);
+  }
+
+  if (process.env.APP_PASSWORD) {
+    const currentPassRes = await db.query("SELECT 1 FROM app_settings WHERE key = 'app_password'");
+    if (currentPassRes.rows.length === 0) {
+      const hash = await bcrypt.hash(process.env.APP_PASSWORD, 10);
+      await db.query(
+        "INSERT INTO app_settings (key, value) VALUES ('app_password', $1) ON CONFLICT (key) DO NOTHING",
+        [hash]
+      );
     }
-  } catch (err) {
-    console.error('Database initialization error:', err);
   }
 }
-initDatabase();
 
 // --- 1. APIs: ตรวจสอบและตั้งค่าความปลอดภัย ---
+app.get('/api/auth-status', async (req, res) => {
+  try {
+    const result = await db.query("SELECT 1 FROM app_settings WHERE key = 'app_password'");
+    res.json({ passwordSet: result.rows.length > 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/setup-password', async (req, res) => {
+  const { password } = req.body;
+  if (typeof password !== 'string' || password.length < 4) {
+    return res.status(400).json({ success: false, message: 'รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร' });
+  }
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    const result = await db.query(
+      `INSERT INTO app_settings (key, value)
+       SELECT 'app_password', $1
+       WHERE NOT EXISTS (SELECT 1 FROM app_settings WHERE key = 'app_password')
+       ON CONFLICT (key) DO NOTHING`,
+      [hash]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(409).json({ success: false, message: 'ตั้งรหัสผ่านไว้แล้ว กรุณาเข้าสู่ระบบ' });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/login', async (req, res) => {
   const { password } = req.body;
   if (!password) return res.status(400).json({ success: false, message: 'กรุณากรอกรหัสผ่าน' });
@@ -292,6 +331,14 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+async function startServer() {
+  await initDatabase();
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+startServer().catch((err) => {
+  console.error('Database initialization error:', err);
+  process.exitCode = 1;
 });

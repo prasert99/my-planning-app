@@ -8,6 +8,7 @@ let editingPostId = null;
 // ================= DOM ELEMENTS =================
 const loginScreen = document.getElementById('login-screen');
 const loginForm = document.getElementById('login-form');
+const setupPasswordForm = document.getElementById('setup-password-form');
 const passwordInput = document.getElementById('password-input');
 const loginError = document.getElementById('login-error');
 const logoutBtn = document.getElementById('logout-btn');
@@ -52,6 +53,35 @@ let selectedDocBase64 = null;
 let selectedDocName = null;
 
 // ================= 1. AUTHENTICATION & SECURITY =================
+async function initializeAuth() {
+  try {
+    const res = await fetch('/api/auth-status');
+    if (!res.ok) throw new Error('Unable to check password setup status');
+
+    const { passwordSet } = await res.json();
+    if (!passwordSet) {
+      sessionStorage.removeItem('isLoggedIn');
+      loginForm.classList.add('hidden');
+      setupPasswordForm.classList.remove('hidden');
+      document.getElementById('login-subtitle').textContent = 'ตั้งรหัสผ่านเพื่อเริ่มใช้งานแผนงานส่วนตัวของคุณ';
+      loginScreen.classList.remove('hidden');
+      return;
+    }
+
+    setupPasswordForm.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+    document.getElementById('login-subtitle').textContent = 'เข้าสู่ระบบเพื่อจัดการแผนงานส่วนตัวของคุณ';
+    checkAuth();
+  } catch (err) {
+    console.error('Unable to check password setup status:', err);
+    loginForm.classList.remove('hidden');
+    setupPasswordForm.classList.add('hidden');
+    loginError.textContent = 'ไม่สามารถตรวจสอบสถานะระบบได้ กรุณาลองใหม่';
+    loginError.classList.remove('hidden');
+    loginScreen.classList.remove('hidden');
+  }
+}
+
 function checkAuth() {
   const isAuth = sessionStorage.getItem('isLoggedIn');
   if (isAuth === 'true') {
@@ -85,6 +115,55 @@ loginForm.addEventListener('submit', async (e) => {
   } catch (err) {
     loginError.textContent = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้';
     loginError.classList.remove('hidden');
+  }
+});
+
+setupPasswordForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const password = document.getElementById('first-password-input').value;
+  const confirmPassword = document.getElementById('confirm-first-password-input').value;
+  const errorEl = document.getElementById('setup-password-error');
+
+  if (password.length < 4) {
+    errorEl.textContent = 'รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  if (password !== confirmPassword) {
+    errorEl.textContent = 'รหัสผ่านและการยืนยันไม่ตรงกัน';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/setup-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      if (res.status === 409) {
+        setupPasswordForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        loginError.textContent = data.message || 'ตั้งรหัสผ่านไว้แล้ว กรุณาเข้าสู่ระบบ';
+        loginError.classList.remove('hidden');
+        return;
+      }
+      errorEl.textContent = data.message || 'ไม่สามารถตั้งรหัสผ่านได้';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    sessionStorage.setItem('isLoggedIn', 'true');
+    setupPasswordForm.reset();
+    setupPasswordForm.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+    document.getElementById('login-subtitle').textContent = 'เข้าสู่ระบบเพื่อจัดการแผนงานส่วนตัวของคุณ';
+    checkAuth();
+  } catch (err) {
+    errorEl.textContent = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้';
+    errorEl.classList.remove('hidden');
   }
 });
 
@@ -663,4 +742,4 @@ new Sortable(postsFeedEl, {
 });
 
 // เริ่มต้นระบบ
-checkAuth();
+initializeAuth();
