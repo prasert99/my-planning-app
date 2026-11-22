@@ -11,15 +11,38 @@
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
   <style>
     body { font-family: 'Prompt', sans-serif; }
-    .dark { background-color: #18191a; color: #e4e6eb; }
-    .dark .bg-white { background-color: #242526 !important; color: #e4e6eb !important; border-color: #393a3b !important; }
-    .dark .bg-gray-50 { background-color: #3a3b3c !important; color: #e4e6eb !important; border-color: #4e4f50 !important; }
-    .dark .bg-gray-100 { background-color: #3a3b3c !important; color: #e4e6eb !important; }
-    .dark .text-gray-900 { color: #f0f2f5 !important; }
-    .dark .text-gray-800 { color: #e4e6eb !important; }
-    .dark .text-gray-700 { color: #b0b3b8 !important; }
-    .dark .text-gray-600 { color: #b0b3b8 !important; }
-    .dark .border-gray-200, .dark .border-gray-100 { border-color: #3e4042 !important; }
+    html.dark { color-scheme: dark; }
+    .dark body, .dark #login-screen { background-color: #111827 !important; color: #e5e7eb; }
+    .dark .bg-white { background-color: #1f2937 !important; color: #e5e7eb !important; border-color: #374151 !important; }
+    .dark .bg-gray-50 { background-color: #1f2937 !important; color: #e5e7eb !important; border-color: #374151 !important; }
+    .dark .bg-gray-100 { background-color: #273449 !important; color: #e5e7eb !important; }
+    .dark .bg-gray-200 { background-color: #374151 !important; color: #d1d5db !important; }
+    .dark .bg-blue-50 { background-color: #172554 !important; color: #bfdbfe !important; }
+    .dark .bg-blue-100 { background-color: #1e3a8a !important; color: #dbeafe !important; }
+    .dark .bg-green-100 { background-color: #14532d !important; color: #bbf7d0 !important; }
+    .dark .text-gray-900 { color: #f9fafb !important; }
+    .dark .text-gray-800 { color: #e5e7eb !important; }
+    .dark .text-gray-700 { color: #d1d5db !important; }
+    .dark .text-gray-600 { color: #cbd5e1 !important; }
+    .dark .text-gray-500 { color: #9ca3af !important; }
+    .dark .text-gray-400 { color: #9ca3af !important; }
+    .dark .border-gray-300, .dark .border-gray-200, .dark .border-gray-100 { border-color: #374151 !important; }
+    .dark input:not([type="file"]), .dark textarea, .dark select {
+      background-color: #111827;
+      color: #e5e7eb;
+      border-color: #4b5563;
+    }
+    .dark input::placeholder, .dark textarea::placeholder { color: #9ca3af; }
+    .dark input:focus, .dark textarea:focus, .dark select:focus { background-color: #1f2937; }
+    .dark option { background-color: #1f2937; color: #e5e7eb; }
+    .dark hr { border-color: #374151; }
+    .dark .hover\:bg-gray-50:hover { background-color: #273449 !important; }
+    .dark .hover\:bg-gray-100:hover { background-color: #374151 !important; }
+    .dark .hover\:bg-gray-200:hover { background-color: #374151 !important; }
+    .dark .hover\:text-gray-600:hover, .dark .hover\:text-gray-700:hover { color: #e5e7eb !important; }
+    .dark .post-completed { background-color: #1f2937 !important; }
+    .dark .post-completed .post-title-text { color: #9ca3af !important; }
+    .dark .sortable-ghost { background-color: #172554 !important; }
     .sortable-ghost { opacity: 0.4; background-color: #dbeafe; border: 2px dashed #3b82f6; }
     .drag-handle { cursor: grab; touch-action: none; }
     .drag-handle:active { cursor: grabbing; }
@@ -97,8 +120,8 @@
         <ul id="category-list" class="space-y-1 mb-4"></ul>
         <hr class="my-3">
         <form id="add-category-form" class="space-y-2">
-          <div class="flex gap-1.5">
-            <select id="new-category-emoji" class="text-sm border border-gray-300 rounded-lg px-2 py-1.5 bg-gray-50 focus:outline-none">
+          <div class="grid w-full min-w-0 grid-cols-[3rem_minmax(0,1fr)] gap-2">
+            <select id="new-category-emoji" class="w-full min-w-0 text-sm border border-gray-300 rounded-lg px-2 py-1.5 bg-gray-50 focus:outline-none">
               <option value="📁">📁</option>
               <option value="📌">📌</option>
               <option value="💼">💼</option>
@@ -110,7 +133,7 @@
               <option value="❤️">❤️</option>
             </select>
             <input type="text" id="new-category-name" placeholder="เพิ่มหมวดหมู่ใหม่..." required
-              class="flex-1 text-sm px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1877f2]">
+              class="w-full min-w-0 text-sm px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1877f2]">
           </div>
           <button type="submit" class="w-full bg-[#1877f2] hover:bg-blue-600 text-white py-1.5 rounded-lg text-sm font-semibold transition">
             + เพิ่มหมวดหมู่
